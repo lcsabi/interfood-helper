@@ -103,6 +103,7 @@ public class ConsumerResponseService {
                     .date(date)
                     .build();
 
+            // If there is already a record in the database with the current date
             if (mealService.mealsExistForDay(date)) {
                 System.out.println("Records exist for " + date);
                 dailyMeals.setMeals(mealService.findByDate(date));
@@ -133,7 +134,6 @@ public class ConsumerResponseService {
         String[] foodCodes = interfoodConfiguration.getFoodCodes();
 
         List<CompletableFuture<Void>> mealFutures = new ArrayList<>();
-
         for (String foodCode : foodCodes) {
             String foodCodeQueryString = "k=" + foodCode;
 
