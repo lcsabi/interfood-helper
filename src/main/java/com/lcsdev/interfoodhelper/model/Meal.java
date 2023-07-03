@@ -18,6 +18,7 @@ public class Meal {
     @Id
     @JsonIgnore
     private String id;
+    @JsonIgnore
     private LocalDate date;
     private String code;
     private String name;
