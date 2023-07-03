@@ -4,7 +4,6 @@ import com.lcsdev.interfoodhelper.model.ConsumerRequest;
 import com.lcsdev.interfoodhelper.model.ConsumerResponse;
 import com.lcsdev.interfoodhelper.service.ConsumerResponseService;
 import com.lcsdev.interfoodhelper.util.ResponseStatus;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

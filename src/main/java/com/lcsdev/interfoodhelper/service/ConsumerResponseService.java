@@ -12,7 +12,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Data
 public class ConsumerResponseService {
 
     @Autowired
