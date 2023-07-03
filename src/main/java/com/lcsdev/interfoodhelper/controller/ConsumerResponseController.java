@@ -25,7 +25,7 @@ public class ConsumerResponseController {
         ConsumerResponse response = ConsumerResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(ResponseStatus.PROCESSING)
-                .requestedDays(request.getDates())
+                .requestedDates(request.getDates())
                 .dailyMeals(null)
                 .build();
         return ResponseEntity.ok(responseService.save(response));

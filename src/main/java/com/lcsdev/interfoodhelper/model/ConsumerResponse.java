@@ -21,6 +21,6 @@ public class ConsumerResponse {
     private String id;
     private LocalDateTime timestamp;
     private ResponseStatus status;
-    private List<LocalDate> requestedDays;
+    private List<LocalDate> requestedDates;
     private List<DailyMeals> dailyMeals;
 }
