@@ -3,6 +3,7 @@ package com.lcsdev.interfoodhelper.service;
 import com.lcsdev.interfoodhelper.model.ConsumerResponse;
 import com.lcsdev.interfoodhelper.model.DailyMeals;
 import com.lcsdev.interfoodhelper.repository.ConsumerResponseRepository;
+import com.lcsdev.interfoodhelper.util.InterfoodConfiguration;
 import com.lcsdev.interfoodhelper.util.ResponseStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class ConsumerResponseService {
 
     @Autowired
     private final MealService mealService;
+
+    @Autowired
+    private final InterfoodConfiguration interfoodConfiguration;
 
     public ConsumerResponse save(ConsumerResponse consumerResponse) {
         responseRepository.save(consumerResponse);
