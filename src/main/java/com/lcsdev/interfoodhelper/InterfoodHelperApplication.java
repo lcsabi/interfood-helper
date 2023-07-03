@@ -16,7 +16,7 @@ public class InterfoodHelperApplication {
 		SpringApplication.run(InterfoodHelperApplication.class, args);
 	}
 
-	@Bean
+	//@Bean
 	public CommandLineRunner clr(MealRepository mealRepository) {
 		return args -> {
 			var meal = Meal.builder()
@@ -34,9 +34,19 @@ public class InterfoodHelperApplication {
 					.code("A")
 					.name("Rácpörkölt")
 					.calories("958 kcal")
-					.protein("49.8")
+					.protein("49.8g")
 					.fat("47g")
 					.carbs("86.2g")
+					.build();
+			mealRepository.insert(meal);
+			meal = Meal.builder()
+					.date(LocalDate.of(2023, 7, 5))
+					.code("O")
+					.name("Sólet, füstölt tarja")
+					.calories("861 kcal")
+					.protein("52.4g")
+					.fat("30.5g")
+					.carbs("94.6g")
 					.build();
 			mealRepository.insert(meal);
 		};

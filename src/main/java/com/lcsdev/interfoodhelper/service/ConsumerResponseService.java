@@ -25,8 +25,9 @@ public class ConsumerResponseService {
     @Autowired
     private final MealService mealService;
 
-    public String save(ConsumerResponse consumerResponse) {
-        return responseRepository.save(consumerResponse).getId();
+    public ConsumerResponse save(ConsumerResponse consumerResponse) {
+        responseRepository.save(consumerResponse);
+        return consumerResponse;
     }
 
     public ConsumerResponse findById(String id) {
@@ -50,6 +51,7 @@ public class ConsumerResponseService {
     public void processIncompleteResponses() {
         System.out.println("Scheduled task started");
         List<ConsumerResponse> incompleteResponses = findIncompleteResponses();
+        System.out.println("Incomplete responses in queue: " + incompleteResponses.size());
         for (ConsumerResponse response : incompleteResponses) {
             if (response.getStatus() == ResponseStatus.PROCESSING) {
                 // Process incomplete response and compute daily meals

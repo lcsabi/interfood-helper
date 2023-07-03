@@ -1,5 +1,6 @@
 package com.lcsdev.interfoodhelper.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 public class Meal {
 
     @Id
+    @JsonIgnore
     private String id;
     private LocalDate date;
     private String code;

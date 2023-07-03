@@ -21,7 +21,7 @@ public class ConsumerResponseController {
     private final ConsumerResponseService responseService;
 
     @PostMapping
-    public ResponseEntity<String> saveRequest(@RequestBody ConsumerRequest request) {
+    public ResponseEntity<ConsumerResponse> saveRequest(@RequestBody ConsumerRequest request) {
         ConsumerResponse response = ConsumerResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(ResponseStatus.PROCESSING)
