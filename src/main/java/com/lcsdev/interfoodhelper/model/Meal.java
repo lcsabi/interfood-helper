@@ -16,7 +16,7 @@ public class Meal {
 
     @Id
     private String id;
-    private LocalDate day;
+    private LocalDate date;
     private String code;
     private String name;
     private String calories;

@@ -20,7 +20,7 @@ public class InterfoodHelperV2Application {
 	public CommandLineRunner clr(MealRepository mealRepository) {
 		return args -> {
 			var meal = Meal.builder()
-					.day(LocalDate.of(2023, 7, 4))
+					.date(LocalDate.of(2023, 7, 4))
 					.code("L1")
 					.name("Csülkös bableves")
 					.calories("747 kcal")
