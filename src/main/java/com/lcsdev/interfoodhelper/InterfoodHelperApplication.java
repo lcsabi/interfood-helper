@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Bean;
 import java.time.LocalDate;
 
 @SpringBootApplication
-public class InterfoodHelperV2Application {
+public class InterfoodHelperApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(InterfoodHelperV2Application.class, args);
+		SpringApplication.run(InterfoodHelperApplication.class, args);
 	}
 
 	@Bean

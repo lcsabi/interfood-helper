@@ -46,38 +46,45 @@ public class ConsumerResponseService {
         return responseRepository.findByDailyMealsIsNull();
     }
 
-    @Scheduled(fixedDelay = 10000) // Runs every minute
+    @Scheduled(fixedDelay = 10000) // 60000 = runs every minute
     public void processIncompleteResponses() {
         System.out.println("Scheduled task started");
         List<ConsumerResponse> incompleteResponses = findIncompleteResponses();
         for (ConsumerResponse response : incompleteResponses) {
-            // Process the incomplete response and compute the daily meals
-            String responseId = response.getId();
-            System.out.println("Processing response " + responseId);
-            List<LocalDate> requestedDates = response.getRequestedDates();
-            System.out.println("Requested days: " + requestedDates);
+            if (response.getStatus() == ResponseStatus.PROCESSING) {
+                // Process incomplete response and compute daily meals
+                String responseId = response.getId();
+                System.out.println("Processing response " + responseId);
+                List<LocalDate> requestedDates = response.getRequestedDates();
+                System.out.println("Requested days: " + requestedDates);
 
-            List<DailyMeals> computedDailyMeals = new ArrayList<>();
-            for (LocalDate date : requestedDates) {
-                DailyMeals dailyMeals = DailyMeals.builder()
-                        .date(date)
-                        .build();
-                if (mealService.mealsExistForDay(date)) {
-                    System.out.println("Records exist for " + date);
-                } else {
-                    // Call parser class, upload to database
-                    System.out.println("Records don't exist for " + date);
-                    System.out.println("Calling parser function");
+                List<DailyMeals> computedDailyMeals = new ArrayList<>();
+                for (LocalDate date : requestedDates) {
+                    DailyMeals dailyMeals = DailyMeals.builder()
+                            .date(date)
+                            .build();
+                    if (mealService.mealsExistForDay(date)) {
+                        // just need to query data from database after else
+                        System.out.println("Records exist for " + date);
+                    } else {
+                        // TODO: Call parser class, upload to database
+                        // parser just parses and uploads to database
+                        System.out.println("Records don't exist for " + date);
+                        System.out.println("Calling parser function");
+                    }
+                    // Query meals from database, add it to current day
+                    // might need to put these two in both if and else scopes
+                    dailyMeals.setMeals(mealService.findByDate(date));
+                    computedDailyMeals.add(dailyMeals);
                 }
-                // Query meals from database, add it to current day
-                dailyMeals.setMeals(mealService.findByDate(date));
-                // Add dailyMeals to helper list
-                computedDailyMeals.add(dailyMeals);
+                // Update the response with the computed daily meals
+                response.setDailyMeals(computedDailyMeals);
+                response.setStatus(ResponseStatus.COMPLETED);
+                responseRepository.save(response);
+            } else {
+                // Response is incomplete but marked as completed
+                System.out.println("Response "+ response.getId() + " is incomplete but marked as completed");
             }
-            // Update the response with the computed daily meals
-            response.setDailyMeals(computedDailyMeals);
-            response.setStatus(ResponseStatus.COMPLETED);
-            responseRepository.save(response);
         }
     }
 }
