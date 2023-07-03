@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Data
-@NoArgsConstructor
 @RequiredArgsConstructor
 @ConfigurationProperties(prefix = "interfood")
 public class InterfoodConfiguration {
