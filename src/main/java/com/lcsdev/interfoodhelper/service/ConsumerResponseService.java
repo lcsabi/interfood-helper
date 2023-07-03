@@ -61,12 +61,11 @@ public class ConsumerResponseService {
                 } else {
                     System.out.println("Records don't exist for " + date);
                 }
-                response.setStatus(ResponseStatus.COMPLETED);
-                responseRepository.save(response);
             }
             // Update the response with the computed daily meals
             // response.setDailyMeals(computedDailyMeals);
-            // responseRepository.save(response);
+            response.setStatus(ResponseStatus.COMPLETED);
+            responseRepository.save(response);
         }
     }
 }
