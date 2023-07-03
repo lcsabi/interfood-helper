@@ -60,35 +60,39 @@ public class ConsumerResponseService {
                 List<LocalDate> requestedDates = response.getRequestedDates();
                 System.out.println("Requested days: " + requestedDates);
 
+                // START 1 - CompletableFuture<List<DailyMeals>> cf1
                 List<DailyMeals> computedDailyMeals = new ArrayList<>();
-                // start of possible delegate method
                 for (LocalDate date : requestedDates) {
                     DailyMeals dailyMeals = DailyMeals.builder()
                             .date(date)
                             .build();
                     if (mealService.mealsExistForDay(date)) {
-                        // just need to query data from database after else
+                        // nothing to do, just need to query data from database, jump after else
                         System.out.println("Records exist for " + date);
                     } else {
+                        // START 2 - CompletableFuture<Void> cf2
                         // TODO: Call parser class, upload to database
                         // parser just parses and uploads to database
                         System.out.println("Records don't exist for " + date);
                         System.out.println("Calling parser function");
+                        // BLOCK UNTIL HERE
                     }
                     // Query meals from database, add it to current day
                     // might need to put these two in both if and else scopes
                     dailyMeals.setMeals(mealService.findByDate(date));
                     computedDailyMeals.add(dailyMeals);
                 }
+                // END 1
+                // BLOCK UNTIL HERE
                 // Update the response with the computed daily meals
                 response.setDailyMeals(computedDailyMeals);
                 response.setStatus(ResponseStatus.COMPLETED);
                 responseRepository.save(response);
-                // end of possible delegate method
             } else {
                 // Response is incomplete but marked as completed, shouldn't happen
                 System.out.println("Response "+ response.getId() + " is incomplete but marked as completed");
             }
         }
     }
+
 }
