@@ -61,6 +61,7 @@ public class ConsumerResponseService {
                 System.out.println("Requested days: " + requestedDates);
 
                 List<DailyMeals> computedDailyMeals = new ArrayList<>();
+                // start of possible delegate method
                 for (LocalDate date : requestedDates) {
                     DailyMeals dailyMeals = DailyMeals.builder()
                             .date(date)
@@ -83,8 +84,9 @@ public class ConsumerResponseService {
                 response.setDailyMeals(computedDailyMeals);
                 response.setStatus(ResponseStatus.COMPLETED);
                 responseRepository.save(response);
+                // end of possible delegate method
             } else {
-                // Response is incomplete but marked as completed
+                // Response is incomplete but marked as completed, shouldn't happen
                 System.out.println("Response "+ response.getId() + " is incomplete but marked as completed");
             }
         }
