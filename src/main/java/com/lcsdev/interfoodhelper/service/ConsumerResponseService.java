@@ -2,7 +2,6 @@ package com.lcsdev.interfoodhelper.service;
 
 import com.lcsdev.interfoodhelper.model.ConsumerResponse;
 import com.lcsdev.interfoodhelper.repository.ConsumerResponseRepository;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,5 +31,9 @@ public class ConsumerResponseService {
 
     public void delete(String id) {
         responseRepository.deleteById(id);
+    }
+
+    public List<ConsumerResponse> findIncompleteResponses() {
+        return responseRepository.findByDailyMealsIsNull();
     }
 }
