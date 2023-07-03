@@ -1,5 +1,6 @@
 package com.lcsdev.interfoodhelper.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lcsdev.interfoodhelper.util.ResponseStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,10 @@ public class ConsumerResponse {
     private String id;
     private LocalDateTime timestamp;
     private ResponseStatus status;
+
+    @JsonProperty("requested_dates")
     private List<LocalDate> requestedDates;
+
+    @JsonProperty("daily_meals")
     private List<DailyMeals> dailyMeals;
 }
