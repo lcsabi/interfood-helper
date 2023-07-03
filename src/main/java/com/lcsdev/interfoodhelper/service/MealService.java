@@ -3,6 +3,7 @@ package com.lcsdev.interfoodhelper.service;
 import com.lcsdev.interfoodhelper.model.Meal;
 import com.lcsdev.interfoodhelper.repository.MealRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MealService {
 
+    @Autowired
     private final MealRepository mealRepository;
 
     public String save(Meal meal) {

@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,5 +21,6 @@ public class ConsumerResponse {
     private String id;
     private LocalDateTime timestamp;
     private ResponseStatus status;
+    private List<LocalDate> requestedDays;
     private List<DailyMeals> dailyMeals;
 }
