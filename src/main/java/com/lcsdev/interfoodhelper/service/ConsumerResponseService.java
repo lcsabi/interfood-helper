@@ -2,6 +2,7 @@ package com.lcsdev.interfoodhelper.service;
 
 import com.lcsdev.interfoodhelper.model.ConsumerResponse;
 import com.lcsdev.interfoodhelper.repository.ConsumerResponseRepository;
+import com.lcsdev.interfoodhelper.util.ResponseStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -60,6 +61,8 @@ public class ConsumerResponseService {
                 } else {
                     System.out.println("Records don't exist for " + date);
                 }
+                response.setStatus(ResponseStatus.COMPLETED);
+                responseRepository.save(response);
             }
             // Update the response with the computed daily meals
             // response.setDailyMeals(computedDailyMeals);
