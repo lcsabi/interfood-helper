@@ -31,8 +31,14 @@ public class ConsumerResponseController {
         return ResponseEntity.ok(responseService.save(response));
     }
 
+    // Comment out to make endpoint unavailable - or Spring Security
     @GetMapping
     public ResponseEntity<List<ConsumerResponse>> findAll() {
         return ResponseEntity.ok(responseService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ConsumerResponse> findById(@PathVariable String id) {
+        return ResponseEntity.ok(responseService.findById(id));
     }
 }
