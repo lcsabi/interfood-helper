@@ -18,12 +18,10 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -64,7 +62,7 @@ public class ConsumerResponseService {
         return responseRepository.findByDailyMealsIsNull();
     }
 
-    @Scheduled(fixedDelay = 20000) // 60000 = runs every minute
+    @Scheduled(fixedDelay = 10000) // 60000 = runs every minute
     public void processIncompleteResponses() {
         System.out.println("Scheduled task started");
         List<ConsumerResponse> incompleteResponses = findIncompleteResponses();
@@ -79,7 +77,7 @@ public class ConsumerResponseService {
                 // Parse Interfood API for requested days
                 CompletableFuture<List<DailyMeals>> computedDailyMeals = processDailyMeals(requestedDates);
 
-                // Update the response with the computed daily meals - BLOCKING POINT
+                // Update the response with the computed daily meals
                 computedDailyMeals.thenAccept(result -> {
                     response.setDailyMeals(result);
                     response.setStatus(ResponseStatus.COMPLETED);
@@ -95,82 +93,70 @@ public class ConsumerResponseService {
     }
 
     private CompletableFuture<List<DailyMeals>> processDailyMeals(List<LocalDate> requestedDates) {
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        List<DailyMeals> computedDailyMeals = new ArrayList<>();
+        List<CompletableFuture<DailyMeals>> futures = requestedDates.stream()
+                .map(date -> CompletableFuture.supplyAsync(() -> processDailyMeal(date)))
+                .toList();
 
-        for (LocalDate date : requestedDates) {
-            DailyMeals dailyMeals = DailyMeals.builder()
-                    .date(date)
-                    .build();
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
-            // If there is already a record in the database with the current date
-            if (mealService.mealsExistForDay(date)) {
-                System.out.println("Records exist for " + date);
-                dailyMeals.setMeals(mealService.findByDate(date));
-                computedDailyMeals.add(dailyMeals);
-            } else {
-                System.out.println("Records don't exist for " + date);
-                System.out.println("Calling parser function");
-
-                // Get food data for a single day
-                CompletableFuture<Void> interfoodFuture = sendInterfoodRequest(date)
-                        .thenRun(() -> dailyMeals.setMeals(mealService.findByDate(date)))
-                        .thenRun(() -> computedDailyMeals.add(dailyMeals));
-
-                futures.add(interfoodFuture);
-            }
-        }
-
-        // Wait for all request to complete - BLOCKING POINT
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenApplyAsync(v -> computedDailyMeals);
+        return allFutures.thenApply(v -> futures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList()));
     }
 
-    private CompletableFuture<List<Void>> sendInterfoodRequest(LocalDate date) {
+    private CompletableFuture<Meal> sendInterfoodRequest(LocalDate date, String foodCode) {
         HttpClient httpClient = HttpClient.newHttpClient();
         String dayQueryString = "d=" + date;
         String languageQueryString = "l=hu";
         String endpoint = interfoodConfiguration.getEndpoint();
-        String[] foodCodes = interfoodConfiguration.getFoodCodes();
 
-        List<CompletableFuture<Void>> mealFutures = new ArrayList<>();
-        for (String foodCode : foodCodes) {
-            String foodCodeQueryString = "k=" + foodCode;
+        String foodCodeQueryString = "k=" + foodCode;
+        String requestUri = String.join("&", endpoint, foodCodeQueryString, dayQueryString, languageQueryString);
 
-            CompletableFuture<Void> mealFuture = CompletableFuture.runAsync(() -> {
-                try {
-                    // Build Interfood API call request parameters
-                    HttpRequest getRequest = HttpRequest.newBuilder()
-                            .uri(new URI(String.join(
-                                    "&",
-                                    endpoint,
-                                    foodCodeQueryString,
-                                    dayQueryString,
-                                    languageQueryString)))
-                            .GET()
-                            .build();
-                    HttpResponse<String> getResponse = httpClient.send(getRequest,
-                            HttpResponse.BodyHandlers.ofString());
-                    //System.out.println(date + "-" + foodCode + " request sent.");
+        HttpRequest getRequest = HttpRequest.newBuilder()
+                .uri(URI.create(requestUri))
+                .GET()
+                .build();
 
-                    // Parse responses with Groovy
-                    parseInterfoodResponse(date, foodCode, getResponse);
-                } catch (IOException | URISyntaxException | InterruptedException e) {
-                    throw new RuntimeException("Error during processing API request: ", e);
-                }
-            });
-
-            mealFutures.add(mealFuture);
-        }
-
-        // Wait for all parsing to be done - BLOCKING POINT
-        return CompletableFuture.allOf(mealFutures.toArray(new CompletableFuture[0]))
-                .thenApplyAsync(v -> mealFutures.stream()
-                        .map(CompletableFuture::join)
-                        .collect(Collectors.toList()));
+        return httpClient.sendAsync(getRequest, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> parseInterfoodResponse(date, foodCode, response));
     }
 
-    private void parseInterfoodResponse(LocalDate day, String foodCode, HttpResponse<String> response) {
+    private DailyMeals processDailyMeal(LocalDate date) {
+        DailyMeals dailyMeals = DailyMeals.builder()
+                .date(date)
+                .build();
+
+        if (mealService.mealsExistForDay(date)) {
+            System.out.println("Records exist for " + date);
+            dailyMeals.setMeals(mealService.findByDate(date));
+        } else {
+            System.out.println("Records don't exist for " + date);
+            System.out.println("Calling parser function");
+
+            List<String> foodCodes = List.of(interfoodConfiguration.getFoodCodes());
+
+            List<CompletableFuture<Meal>> mealFutures = foodCodes.stream()
+                    .map(foodCode -> sendInterfoodRequest(date, foodCode))
+                    .toList();
+
+            CompletableFuture<Void> allMealFutures = CompletableFuture.allOf(
+                    mealFutures.toArray(new CompletableFuture[0])
+            );
+
+            allMealFutures.join(); // Wait for all meals to be retrieved
+
+            List<Meal> meals = mealFutures.stream()
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
+
+            dailyMeals.setMeals(meals);
+        }
+
+        return dailyMeals;
+    }
+
+    private Meal parseInterfoodResponse(LocalDate day, String foodCode, HttpResponse<String> response) {
         // Bind Groovy into business logic
         Binding binding = new Binding();
         binding.setVariable("htmlResponse", response.body());
@@ -193,5 +179,6 @@ public class ConsumerResponseService {
 
         Meal meal = new Meal(null, day, foodCode, dishName, calories, protein, fat, carbs);
         mealService.save(meal);
+        return meal;
     }
 }
