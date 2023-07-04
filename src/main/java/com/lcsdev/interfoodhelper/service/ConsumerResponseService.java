@@ -179,6 +179,7 @@ public class ConsumerResponseService {
 
         Meal meal = new Meal(null, day, foodCode, dishName, calories, protein, fat, carbs);
         mealService.save(meal);
+
         return meal;
     }
 }
