@@ -104,24 +104,6 @@ public class ConsumerResponseService {
                 .collect(Collectors.toList()));
     }
 
-    private CompletableFuture<Meal> sendInterfoodRequest(LocalDate date, String foodCode) {
-        HttpClient httpClient = HttpClient.newHttpClient();
-        String dayQueryString = "d=" + date;
-        String languageQueryString = "l=hu";
-        String endpoint = interfoodConfiguration.getEndpoint();
-
-        String foodCodeQueryString = "k=" + foodCode;
-        String requestUri = String.join("&", endpoint, foodCodeQueryString, dayQueryString, languageQueryString);
-
-        HttpRequest getRequest = HttpRequest.newBuilder()
-                .uri(URI.create(requestUri))
-                .GET()
-                .build();
-
-        return httpClient.sendAsync(getRequest, HttpResponse.BodyHandlers.ofString())
-                .thenApply(response -> parseInterfoodResponse(date, foodCode, response));
-    }
-
     private DailyMeals processDailyMeal(LocalDate date) {
         DailyMeals dailyMeals = DailyMeals.builder()
                 .date(date)
@@ -154,6 +136,24 @@ public class ConsumerResponseService {
         }
 
         return dailyMeals;
+    }
+
+    private CompletableFuture<Meal> sendInterfoodRequest(LocalDate date, String foodCode) {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        String dayQueryString = "d=" + date;
+        String languageQueryString = "l=hu";
+        String endpoint = interfoodConfiguration.getEndpoint();
+
+        String foodCodeQueryString = "k=" + foodCode;
+        String requestUri = String.join("&", endpoint, foodCodeQueryString, dayQueryString, languageQueryString);
+
+        HttpRequest getRequest = HttpRequest.newBuilder()
+                .uri(URI.create(requestUri))
+                .GET()
+                .build();
+
+        return httpClient.sendAsync(getRequest, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> parseInterfoodResponse(date, foodCode, response));
     }
 
     private Meal parseInterfoodResponse(LocalDate day, String foodCode, HttpResponse<String> response) {
