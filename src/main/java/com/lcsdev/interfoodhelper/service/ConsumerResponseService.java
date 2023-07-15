@@ -10,6 +10,8 @@ import com.lcsdev.interfoodhelper.repository.ConsumerResponseRepository;
 import com.lcsdev.interfoodhelper.util.InterfoodConfiguration;
 import com.lcsdev.interfoodhelper.util.ResponseStatus;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,6 +41,7 @@ public class ConsumerResponseService {
 
     @Autowired
     private final InterfoodConfiguration interfoodConfiguration;
+    private static final Logger apiLogger = LoggerFactory.getLogger("apilogger");
 
     public ConsumerResponse save(ConsumerResponse consumerResponse) {
         responseRepository.save(consumerResponse);
@@ -64,14 +67,17 @@ public class ConsumerResponseService {
 
     @Scheduled(fixedDelay = 10000) // 60000 = runs every minute
     public void processIncompleteResponses() {
-        System.out.println("Scheduled task started");
+        apiLogger.info("Scheduled task started");
+        //System.out.println("Scheduled task started"); TODO: delete
         List<ConsumerResponse> incompleteResponses = findIncompleteResponses();
-        System.out.println("Responses in queue: " + incompleteResponses.size());
+        apiLogger.info("Responses in queue: " + incompleteResponses.size());
+        //System.out.println("Responses in queue: " + incompleteResponses.size()); TODO: delete
         for (ConsumerResponse response : incompleteResponses) {
             // Process incomplete response and compute daily meals
             if (response.getStatus() == ResponseStatus.PROCESSING) {
                 String responseId = response.getId();
-                System.out.println("[" + responseId + "] STARTED processing");
+                apiLogger.info("[" + responseId + "] STARTED processing");
+                //System.out.println("[" + responseId + "] STARTED processing"); TODO: delete
                 List<LocalDate> requestedDates = response.getRequestedDates();
 
                 // Parse Interfood API for requested days
@@ -82,12 +88,14 @@ public class ConsumerResponseService {
                     response.setDailyMeals(result);
                     response.setStatus(ResponseStatus.COMPLETED);
                     responseRepository.save(response);
-                    System.out.println("[" + responseId + "] FINISHED processing");
+                    apiLogger.info("[" + responseId + "] FINISHED processing");
+                    //System.out.println("[" + responseId + "] FINISHED processing"); TODO: delete
                 });
 
             } else {
                 // Response is incomplete but marked as completed, shouldn't happen
-                System.out.println("[" + response.getId() + "] Incomplete but marked as completed");
+                apiLogger.error("[" + response.getId() + "] Incomplete but marked as completed");
+                //System.out.println("[" + response.getId() + "] Incomplete but marked as completed"); TODO: delete
             }
         }
     }
@@ -110,11 +118,14 @@ public class ConsumerResponseService {
                 .build();
 
         if (mealService.mealsExistForDay(date)) {
-            System.out.println("Records exist for " + date);
+            apiLogger.info("Records exist for " + date);
+            //System.out.println("Records exist for " + date); TODO: delete
             dailyMeals.setMeals(mealService.findByDate(date));
         } else {
-            System.out.println("Records don't exist for " + date);
-            System.out.println("Calling parser function");
+            apiLogger.info("Records don't exist for " + date);
+            apiLogger.info("Requesting information for " + date);
+            //System.out.println("Records don't exist for " + date); TODO: delete
+            //System.out.println("Requesting information for " + date); TODO: delete
 
             List<String> foodCodes = List.of(interfoodConfiguration.getFoodCodes());
 
@@ -167,7 +178,8 @@ public class ConsumerResponseService {
             shell.evaluate(new File(interfoodConfiguration.getParser()));
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Groovy script can't be found at the specified path.");
+            apiLogger.error("Groovy script can't be found at the specified path.");
+            //System.out.println("Groovy script can't be found at the specified path."); TODO: delete
         }
 
         // Access database fields from Groovy script
